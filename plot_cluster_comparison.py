@@ -270,4 +270,5 @@ for i_dataset, (dataset, algo_params) in enumerate(datasets):
         )
         plot_num += 1
 
+plt.savefig('./images/Comparision_clustering_methods.png', dpi=300, bbox_inches='tight')
 plt.show()
