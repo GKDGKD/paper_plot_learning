@@ -7,8 +7,8 @@ from pandas import DataFrame
 # plt.rcParams['font.family'] = 'Times New Roman'
 # plt.rcParams['font.size']   = 14
 
-def univariate_histplot(data:DataFrame, x:str, hue=None, figsize=(10,6), style=['science'], kde=True,
-                        saveflag=False, save_dir='./', save_dpi=300, save_type='png'):
+def univariate_histplot(data:DataFrame, x:str, hue=None, figsize=(10,6), style=['science'], kde=True, kind='hist',
+                        plot_dpi=100, saveflag=False, save_dir='./', save_dpi=300, save_type='png'):
     """
     单变量直方图函数。第一次画的
     
@@ -19,6 +19,8 @@ def univariate_histplot(data:DataFrame, x:str, hue=None, figsize=(10,6), style=[
     figsize: 图片尺寸，默认为(10, 6)。
     style: list, 画图的风格，默认为['science']，可以改为['science', 'ieee']
     kde: bool, 是否添加核密度估计曲线，默认为True.
+    kind: str, 图像类型，hist为直方图，kde为密度图。
+    plot_dpi: int, 画图时的dpi。
     saveflag: bool, 是否保存图片，默认为False。
     save_dir: str, 保存路径。
     save_dpi: int, 保存的图片dpi，越高越清晰，图片所占空间也就越大。
@@ -28,23 +30,38 @@ def univariate_histplot(data:DataFrame, x:str, hue=None, figsize=(10,6), style=[
 
     if not isinstance(data, DataFrame):
         raise TypeError("Input 'data' must be a pandas DataFrame")
+
+    cols = data.columns
+    if x not in cols:
+        raise ValueError("Input 'x' must be a column name in data")
+    if hue and hue not in cols:
+        raise ValueError("Input 'hue' must be a column name in data")
+    if not save_dir.endswith('/'):
+        save_dir = save_dir + '/'
+    if kind not in ['hist', 'kde']:
+        raise ValueError("Input 'kind' must be 'hist' or 'kde'")
     
     with plt.style.context(style):
-        fig, ax = plt.subplots(figsize=figsize, dpi=100, facecolor="w")
-        if hue:
-            ax = sns.histplot(data=data, x=x, hue=hue, kde=kde, multiple='dodge', shrink=.8)
+        fig, ax = plt.subplots(figsize=figsize, dpi=plot_dpi, facecolor="w")
+        if hue and kind == 'hist':
+            ax = sns.histplot(data=data, x=x, hue=hue, multiple='dodge', shrink=.8)
+        elif hue and kind == 'kde':
+            ax = sns.kdeplot(data=data, x=x, hue=hue, fill=True, alpha=.5)
         else:
             ax = sns.histplot(data=data, x=x, kde=kde)
-        # ax.set(xlabel=x, ylabel='Frequency')  
-        ax.set_xlabel(x)
-        ax.set_ylabel('Frequency')       
 
-    if saveflag:
-        save_path = save_dir + 'Hist_' + style[-1] + '.' + save_type
-        plt.savefig(save_path, dpi=save_dpi, bbox_inches='tight')
-        print(f'Plot has been saved to {save_path}.')
+        ax.set_xlabel('Values') # 画完图后不能再有参数出现
+        ax.set_ylabel('Frequency')  
 
-    plt.show()
+        if saveflag:
+            if hue:
+                save_path = save_dir + kind + x + '_' + hue + '_' + style[-1] + '.' + save_type
+            else:
+                save_path = save_dir + kind + x + '_' + style[-1] + '.' + save_type
+            plt.savefig(save_path, dpi=save_dpi, bbox_inches='tight')
+            print(f'Plot has been saved to {save_path} .')
+
+        plt.show()
 
 if __name__ == "__main__":
     iris = sns.load_dataset('iris')
