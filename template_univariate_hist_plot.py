@@ -51,7 +51,10 @@ def univariate_histplot(data:DataFrame, x:str, hue=None, figsize=(10,6), style=[
             ax = sns.histplot(data=data, x=x, kde=kde)
 
         ax.set_xlabel('Values') # 画完图后不能再有参数出现
-        ax.set_ylabel('Frequency')  
+        if kind == 'hist':
+            ax.set_ylabel('Frequency')  
+        else:
+            ax.set_ylabel('Density')
 
         if saveflag:
             if hue:
@@ -65,5 +68,5 @@ def univariate_histplot(data:DataFrame, x:str, hue=None, figsize=(10,6), style=[
 
 if __name__ == "__main__":
     iris = sns.load_dataset('iris')
-    univariate_histplot(data=iris, x='sepal_width')
+    univariate_histplot(data=iris, x='sepal_length', hue='species', kind='kde')
     print('Done.')
